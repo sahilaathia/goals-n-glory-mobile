@@ -22,6 +22,7 @@ MyHomePage (parent)
 ### 2. Sebutkan semua widget yang kamu gunakan dalam proyek ini dan jelaskan fungsinya.
 | Widget | Fungsi |
 | --- | --- |
+| `MaterialApp` | Mengatur tema, navigasi, dan konfigurasi global aplikasi |
 | `Scaffold` | Menyediakan struktur dasar halaman (`AppBar`, `body`, dll) |
 | `AppBar` | Bar di bagian atas halaman untuk menampilkan judul |
 | `Text` | Menampilkan teks |
