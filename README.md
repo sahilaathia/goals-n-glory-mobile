@@ -95,14 +95,14 @@ Widget build(BuildContext context) {
 ```
 
 ### 6. Jelaskan konsep "hot reload" di Flutter dan bagaimana bedanya dengan "hot restart".
-Hot Reload (Ctrl+):
+Hot Reload (Ctrl+\\):
 - Memuat perubahan kode ke VM dan rebuild widget tree
 - Mempertahankan state aplikasi (data tidak hilang)
 - Tidak menjalankan ulang main() atau initState()
 - Sangat cepat (dalam hitungan detik)
 - Cocok untuk perubahan UI/tampilan
 
-Hot Restart (Shift+Ctrl+):
+Hot Restart (Shift+Ctrl+\\):
 - Memuat perubahan kode dan restart aplikasi Flutter
 - State aplikasi hilang (reset ke kondisi awal)
 - Menjalankan ulang main() dan initState()
@@ -110,3 +110,111 @@ Hot Restart (Shift+Ctrl+):
 - Diperlukan untuk perubahan struktur/logika yang signifikan
 
 Flutter web mendukung hot restart tapi tidak hot reload.
+
+## Tugas Individu 8
+
+### 1. Perbedaan Navigator.push() dan Navigator.pushReplacement() pada Flutter
+
+Navigator.push():
+- Menambahkan route baru di atas stack tanpa menghapus route sebelumnya
+- Route lama tetap ada di bawah stack
+- User bisa kembali ke halaman sebelumnya dengan tombol back
+- Penggunaan di aplikasi: Navigasi dari homepage ke form tambah produk, karena user perlu bisa kembali ke homepage setelah mengisi form
+
+Navigator.pushReplacement():
+- Mengganti route yang sedang ditampilkan dengan route baru
+- Route lama dihapus dari stack
+- User tidak bisa kembali ke halaman sebelumnya dengan tombol back
+- Penggunaan di aplikasi: Navigasi dari drawer menu ke homepage, karena tidak perlu menyimpan history halaman menu dalam stack
+
+### 2. Pemanfaatkan hierarchy widget seperti Scaffold, AppBar, dan Drawer untuk membangun struktur halaman yang konsisten.
+
+- Scaffold: Widget dasar yang menyediakan struktur visual Material Design dengan AppBar, body, dan drawer
+  ```
+  Scaffold(
+    appBar: AppBar(...),
+    drawer: LeftDrawer(),
+    body: ...
+  )
+  ```
+- AppBar: Header konsisten di setiap halaman dengan title dan styling yang sama
+- Drawer: Menu navigasi yang konsisten di semua halaman, memudahkan user berpindah halaman dengan pattern yang sama
+
+Dengan struktur ini, setiap halaman memiliki layout yang seragam dan konsisten: AppBar di atas, Drawer yang muncul dari samping, dan konten di body.
+
+### 3. Kelebihan menggunakan layout widget seperti Padding, SingleChildScrollView, dan ListView untuk form.
+
+Padding:
+- Memberikan jarak/ruang di sekitar setiap input field agar tidak berhimpitan
+- Membuat form lebih rapi dan mudah dibaca
+- Contoh di aplikasi: Semua TextFormField di `product_form.dart` dibungkus `Padding` dengan `EdgeInsets.all(8.0)` untuk memberikan jarak konsisten antar field
+```
+Padding(
+  padding: const EdgeInsets.all(8.0),
+  child: TextFormField(
+    decoration: InputDecoration(
+      labelText: "Product Name",
+      ...
+    ),
+  ),
+),
+```
+
+SingleChildScrollView:
+- Memungkinkan form di-scroll ketika konten melebihi tinggi layar
+- Mencegah field terpotong atau tidak bisa diakses di layar kecil
+- Contoh di aplikasi: Membungkus `Column` di `product_form.dart` yang berisi semua form field
+```
+body: Form(
+  key: _formKey,
+  child: SingleChildScrollView(
+    child: Column(
+      children: [
+        // input fields
+      ],
+    ),
+  ),
+),
+```
+
+ListView:
+- Efisien untuk menampilkan list item yang dinamis
+- Lazy loading. Hanya render item yang terlihat
+- Contoh di aplikasi: Digunakan di LeftDrawer (`left_drawer.dart`) untuk menampilkan menu navigasi
+```
+Drawer(
+  child: ListView(
+    children: [
+      DrawerHeader(...),
+      ListTile(...), // Home
+      ListTile(...), // Add Product
+    ],
+  ),
+)
+```
+
+Kombinasi ketiga layout ini membuat form `ProductFormPage` yang panjang tetap user-friendly, rapi dengan spacing konsisten, dan bisa diakses dengan smooth scrolling di berbagai ukuran layar.
+
+### 4. Cara menyesuaikan warna tema agar aplikasi Football Shop memiliki identitas visual yang konsisten.
+
+Menggunakan `ThemeData` di `MaterialApp`, yang mana pada project ini di-define di `main.dart`, untuk konsistensi warna di seluruh aplikasi.
+```
+MaterialApp(
+  theme: ThemeData(
+    colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.teal)
+    .copyWith(secondary: Colors.tealAccent[400])
+  ),
+  ...
+)
+```
+
+Untuk menggunakan warna tema aplikasi pada suatu bagian, hanya perlu memanggil `Theme.of(context).colorScheme.primary`/`secondary`.
+
+Contoh penggunaan:
+```
+AppBar(
+  title: Text('Goals n\' Glory'),
+  backgroundColor: Theme.of(context).colorScheme.primary,
+)
+...
+```

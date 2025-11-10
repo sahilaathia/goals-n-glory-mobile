@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:goals_n_glory_mobile/menu.dart';
+import 'package:goals_n_glory_mobile/screens/menu.dart';
 
 void main() {
   runApp(const MyApp());
