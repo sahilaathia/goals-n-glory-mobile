@@ -36,7 +36,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
       appBar: AppBar(
         title: const Center(
           child: Text(
-            'Add Product Form',
+            'Add Product',
           ),
         ),
         backgroundColor: Colors.teal,
@@ -136,7 +136,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
                       borderRadius: BorderRadius.circular(5.0),
                     ),
                   ),
-                  initialValue: _category.isEmpty ? null : _category,
+                  value: _category.isEmpty ? null : _category,
                   items: _categories
                       .map((cat) => DropdownMenuItem(
                             value: cat,
@@ -286,7 +286,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
                   child: ElevatedButton(
                     style: ButtonStyle(
                       backgroundColor:
-                          WidgetStateProperty.all(Colors.teal),
+                          MaterialStateProperty.all(Colors.teal),
                     ),
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
