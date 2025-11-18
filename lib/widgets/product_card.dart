@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:goals_n_glory_mobile/screens/my_product_entry_list.dart';
+import 'package:goals_n_glory_mobile/screens/product_entry_list.dart';
 import 'package:goals_n_glory_mobile/screens/product_form.dart';
 
 class ItemHomepage {
@@ -27,15 +29,6 @@ class ItemCard extends StatelessWidget {
       child: InkWell(
         // Aksi ketika kartu ditekan.
         onTap: () {
-          // Menampilkan pesan SnackBar saat kartu ditekan.
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              SnackBar(
-                content: Text("Kamu telah menekan tombol ${item.name}!"),
-              ),
-            );
-
           // Navigate ke route yang sesuai (tergantung jenis tombol)
           if (item.name == "Add Product") {
             Navigator.push(
@@ -44,6 +37,20 @@ class ItemCard extends StatelessWidget {
                 builder: (context) => ProductFormPage(),
               ),
             );
+          } else if (item.name == "All Products") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ProductEntryListPage(),
+              ),
+            );
+          } else if (item.name == "My Products") {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MyProductEntryListPage(),
+                ),
+              );
           }
           
         },

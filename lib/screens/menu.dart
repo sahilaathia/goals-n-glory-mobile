@@ -10,9 +10,9 @@ class MyHomePage extends StatelessWidget {
   final String kelas = "B"; //kelas
 
   final List<ItemHomepage> items = [
-    ItemHomepage("All Products", Icons.list, Colors.blue),
-    ItemHomepage("My Products", Icons.shopping_bag, Colors.green),
-    ItemHomepage("Add Product", Icons.add_circle, Colors.red),
+    ItemHomepage("All Products", Icons.store_mall_directory_rounded, Colors.blue),
+    ItemHomepage("My Products", Icons.person_rounded, Colors.green),
+    ItemHomepage("Add Product", Icons.add_circle_rounded, Colors.red),
   ];
 
   @override
