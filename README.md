@@ -218,3 +218,164 @@ AppBar(
 )
 ...
 ```
+
+## Tugas Individu 9
+
+### 1. Jelaskan mengapa kita perlu membuat model Dart saat mengambil/mengirim data JSON? Apa konsekuensinya jika langsung memetakan Map<String, dynamic> tanpa model (terkait validasi tipe, null-safety, maintainability)?
+
+Model Dart perlu dibuat karena ketika melakukan request ke web service dengan method GET, kita mendapat hasil berupa JSON. Model diperlukan untuk melakukan konversi data dengan method fromJson() agar Flutter dapat mengenali JSON tersebut sebagai objek dari class yang kita buat.
+
+Konsekuensi tanpa model (langsung Map<String, dynamic>):
+- Validasi tipe tidak ada
+  - Dengan Map<String, dynamic>, semua value bertipe dynamic → tidak ada compile-time checking → error baru muncul saat runtime
+- Null-Safety bermasalah
+  - Tidak ada jaminan field tertentu ada atau tidak → rawan null error saat mengakses data → harus manual cek null di setiap akses data
+- Maintainability buruk
+  - Kode sulit dibaca dan typo field name tidak terdeteksi compiler, sehingga refactoring akan sangat sulit karena tidak bisa track penggunaan field
+
+### 2. Apa fungsi package http dan CookieRequest dalam tugas ini? Jelaskan perbedaan peran http vs CookieRequest.
+
+- Package http: Digunakan untuk melakukan HTTP requests sederhana (GET, POST, PUT, DELETE) ke web service tanpa autentikasi
+- CookieRequest: Digunakan untuk aplikasi yang terintegrasi dengan Django authentication system (seperti project ini), menjaga user tetap login
+
+|  | http Package | CookieRequest 
+| --- | --- | --- |
+| Session Management | Tidak ada | Otomatis |
+| Cookie Handling | Manual | Otomatis tersimpan dan dikirim |
+| Autentikasi | Harus kirim token di setiap request | Cookie otomatis dikirim setiap request |
+| Integrasi Django | Perlu konfigurasi manual | Dirancang khusus untuk Django |
+| Use Case | API publik, fetch data tanpa auth | Aplikasi dengan login Django |
+| State | Stateless | Stateful (menyimpan session) |
+
+### 3. Jelaskan mengapa instance CookieRequest perlu untuk dibagikan ke semua komponen di aplikasi Flutter.
+
+- Single Source of Truth
+  - Satu instance = satu session untuk seluruh app, sehingga status login konsisten di semua page dan cookie autentikasi sama untuk semua request
+- Mencegah login berulang
+  - Jika tiap komponen buat instance baru → session berbeda, user harus login berkali-kali di page yang berbeda yang menyebabkan data user bisa tidak sinkron antar page
+- Efisiensi memory
+  - Tidak perlu buat instance baru di setiap widget. Cookie disimpan sekali, dipakai berkali-kali
+
+Jika tidak dibagikan: User login di MyHomePage → pindah ke MyProductEntryListPage → dianggap belum login karena beda instance.
+
+### 4. Jelaskan konfigurasi konektivitas yang diperlukan agar Flutter dapat berkomunikasi dengan Django. Mengapa kita perlu menambahkan 10.0.2.2 pada ALLOWED_HOSTS, mengaktifkan CORS dan pengaturan SameSite/cookie, dan menambahkan izin akses internet di Android? Apa yang akan terjadi jika konfigurasi tersebut tidak dilakukan dengan benar?
+
+Konfigurasi konektivitas yang diperlukan agar Flutter dapat berkomunikasi dengan Django:
+- Menambahkan 10.0.2.2 di ALLOWED_HOSTS
+  - Mengapa diperlukan? 10.0.2.2 adalah alamat IP khusus Android Emulator untuk mengakses localhost komputer host. Django hanya menerima request dari host yang terdaftar di ALLOWED_HOSTS (security feature)
+  - Jika tidak dikonfigurasi: Django akan menolak request dari emulator, error 400 Bad Request dengan pesan "DisallowedHost"
+- Mengaktifkan CORS (django-cors-headers)
+  - Mengapa diperlukan? CORS (Cross-Origin Resource Sharing) adalah security mechanism browser, Flutter app dan Django server adalah "origin" yang berbeda, tanpa CORS headers, browser/mobile akan memblokir request untuk keamanan
+    - CORS_ALLOW_CREDENTIALS = True diperlukan agar cookie bisa dikirim cross-origin
+  - Jika tidak dikonfigurasi: request diblokir, CORS Policy Error: "Access to fetch at '...' has been blocked by CORS policy"
+- Pengaturan SameSite / secure cookie
+  - Mengapa diperlukan?
+    - *_SAMESITE = 'None': Mengizinkan cookie dikirim dari aplikasi mobile (cross-site)
+    - *_SECURE = True: Cookie hanya dikirim melalui HTTPS (untuk production)
+    - Default SAMESITE adalah 'Lax' atau 'Strict' yang akan memblokir cookie dari mobile app
+  - Jika tidak dikonfigurasi: Cookie tidak tersimpan/terkirim → user logout terus-menerus → harus login ulang setiap request
+- Menambahkan izin akses internet pada Android
+  - Mengapa diperlukan? Android secara default MEMBLOKIR semua akses internet untuk keamanan. Permission ini memberikan izin eksplisit ke aplikasi untuk mengakses internet
+  - Jika tidak dikonfigurasi: Semua HTTP request gagal dengan error "Network unreachable" atau "Socket exception"
+- Menambahkan CSRF Exempt untuk API Endpoints
+  - Mengapa diperlukan? Django secara default memerlukan CSRF token untuk semua POST request sebagai proteksi keamanan. Flutter tidak otomatis mengirim CSRF token seperti form HTML biasa, @csrf_exempt menonaktifkan CSRF check untuk endpoint API yang diakses Flutter
+  - Jika tidak dikonfigurasi: Error 403 Forbidden dengan pesan "CSRF verification failed"
+
+### 5. Jelaskan mekanisme pengiriman data mulai dari input hingga dapat ditampilkan pada Flutter.
+Alur untuk CREATE:
+1. User mengisi form di Flutter
+2. Validasi form
+3. Convert ke JSON
+4. Mengirim HTTP POST request
+5. Django menerima request
+6. Parse dan validasi di Django
+7. Simpan ke database
+8. Mengirim response JSON
+9. Flutter menerima response
+10. Menampilkan feedback
+
+### 6. Jelaskan mekanisme autentikasi dari login, register, hingga logout. Mulai dari input data akun pada Flutter ke Django hingga selesainya proses autentikasi oleh Django dan tampilnya menu pada Flutter.
+
+Register:
+Flutter - RegisterPage (register.dart)
+1. User mengisi form (Username, Password, Confirm Password)
+2. User klik tombol "Register"
+3. onPressed() method dijalankan
+4. Kirim POST request dengan jsonEncode
+Django - authentication/views.py
+5. @csrf_exempt decorator: Skip CSRF check
+6. Parse JSON body
+7. Validasi Username sudah ada dan Password match (Confirm Password)
+8. Buat user baru di database
+9. Return success response JSON
+Flutter - RegisterPage
+10. Cek response status melakukan action yang sesuai
+
+Login:
+Flutter - LoginPage (login.dart)
+1. User mengisi form
+2. User klik tombol "Login"
+3. onPressed() async method
+4. Panggil CookieRequest.login(): POST request dengan data form dan siap menyimpan cookie
+Django - authentication/views.py
+5. @csrf_exempt decorator: Skip CSRF check
+6. Extract credentials dari POST data
+7. Autentikasi dengan Django auth system (query database sesuai username, verify password hash, return)
+8. Cek hasil autentikasi
+9. Login user (buat Session)
+10. Return success response JSON dengan Set-Cookie header
+Flutter - CookieRequest Internal Processing
+11. Extract Set-Cookie dari response header
+12. Simpan cookie di memory
+13. Set loggedIn = true
+Flutter - LoginPage
+14. Cek login status dan melakukan action yang sesuai
+
+Logout:
+1. User klik "Logout"
+2. onTap() method pada InkWell dipanggil
+3. Masuk ke kondisi logout
+4. CookieRequest.logout() dipanggil (kirim POST request dengan cookie tersebut)
+5. @csrf_exempt decorator: Skip CSRF check
+6. Ambil username sebelum logo
+7. Logout user (hapus session)
+8. Return success response
+9. Logged out
+
+### 7. Step-by-step implementasi checklist Tugas 9:
+Pada Project Django (`goals-n-glory`):
+- Membuat app baru dengan nama `authentication`
+- Menginstal library `django-cors-headers` dengan menambahkannya ke `requirements.txt` dan menjalankan `pip install`
+- Menambahkan `corsheaders` ke INSTALLED_APPS dan `corsheaders.middleware.CorsMiddleware` ke MIDDLEWARE pada `settings.py`
+- Menambahkan variabel-variabel baru pada `settings.py`
+- Menambahkan `10.0.2.2` pada ALLOWED_HOSTS di `settings.py` untuk keperluan emulator Android
+- Membuat fungsi `login`, `register`, `logout` di `authentication/views.py`
+- Menambahkan path `'login/'`, `'register/'`, dan `'logout/'` untuk fungsi login, register, dan logout pada `authentication/urls.py`
+- Menambahkan path `'auth/'` yang meng-include `authentication.urls` pada main project `urls.py`
+
+Pada Project Flutter (`goals_n_glory_mobile`):
+- Menjalankan perintah `flutter pub add provider` dan `flutter pub add pbp_django_auth` di root directory
+- Memodifikasi file `main.dart` untuk menambahkan root widget `Provider` yang menyediakan instance `CookieRequest`
+- Membuat file `login.dart` di `lib/screens/` yang berisi class `LoginPage` dan  `LoginApp`
+- Mengubah home pada widget `MaterialApp` di `main.dart` menjadi `const LoginPage()`
+- Membuat file `register.dart` di folder `screens/` yang berisi class `RegisterPage`
+- Memperbarui fungsi `onTap` pada widget `GestureDetector` di `login.dart` untuk menavigasi ke halaman `RegisterPage`
+- Convert data JSON dari endpoint `/json/` menjadi language Dart menggunakan site Quicktype
+- Membuat folder `lib/models/`, menambahkan file `news_entry.dart`, dan mengisinya dengan kode model versi Dart
+- Menjalankan perintah `flutter pub add http` di terminal
+- Menambahkan permission `<uses-permission android:name="android.permission.INTERNET" />` pada file `android/app/src/main/AndroidManifest.xml`
+
+Pada Project Django (`goals-n-glory`):
+- Membuat fungsi `proxy_image` di `main/views.py` untuk mengatasi masalah CORS pada gambar dan menambahkan path `'proxy-image/'` di `main/urls.py`
+- Membuat fungsi `show_json_my` di `main/views.py` untuk mengambil data JSON hanya milik user yang sedang login dan menambahkan path `'json-my/'` di `main/urls.py`
+- Membuat fungsi `add_product_flutter` di `main/views.py` untuk menerima data POST dan menambahkan path `'add-product-flutter/'` di `main/urls.py`
+
+Pada Project Flutter (`goals_n_glory_mobile`):
+- Membuat file `product_entry_card.dart` di `lib/widgets/` untuk tampilan card product
+- Membuat file `product_entry_list.dart` di `lib/screens/` yang berisi fungsi `fetchProducts` (menggunakan `CookieRequest` dari `Provider`) dan widget `ProductEntryListPage` (dengan `FutureBuilder` untuk menampilkan list products)
+- Membuat file `my_product_entry_list.dart` di `lib/screens/` untuk tampilan dan fungsi yang mirip dengan `product_entry_list.dart` tetapi menerapkan filter my products (mengambil data dari endpoint `json-my/` instead of `json/`)
+- Menambahkan `ListTile` baru untuk All Products dan My Products pada `widgets/left_drawer.dart`
+- Menambahkan import `product_entry_list.dart` dan `my_product_entry_list.dart` kemudian memperbarui `onTap` untuk navigasi ke halaman All Products dan My Products pada `widgets/left_drawer.dart` dan `widgets/product_card.dart`
+- Menghubungkan halaman `product_form.dart` dengan `CookieRequest` di dalam method `build`.
+- Mengubah perintah `onPressed` pada button Save di `product_form.dart` untuk menggunakan `request.postJson` untuk mengirim data ke endpoint `add-product-flutter/`.
+- Menambahkan `ListTile` baru untuk Logout pada `widgets/left_drawer.dart` dan mengubah `onTap` menjadi `async` dan menggunakan `request.logout` untuk mengirim request ke endpoint `auth/logout/`
