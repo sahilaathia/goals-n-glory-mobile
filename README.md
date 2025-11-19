@@ -297,50 +297,46 @@ Alur untuk CREATE:
 ### 6. Jelaskan mekanisme autentikasi dari login, register, hingga logout. Mulai dari input data akun pada Flutter ke Django hingga selesainya proses autentikasi oleh Django dan tampilnya menu pada Flutter.
 
 Register:
-Flutter - RegisterPage (register.dart)
-1. User mengisi form (Username, Password, Confirm Password)
-2. User klik tombol "Register"
-3. onPressed() method dijalankan
-4. Kirim POST request dengan jsonEncode
-Django - authentication/views.py
-5. @csrf_exempt decorator: Skip CSRF check
-6. Parse JSON body
-7. Validasi Username sudah ada dan Password match (Confirm Password)
-8. Buat user baru di database
-9. Return success response JSON
-Flutter - RegisterPage
-10. Cek response status melakukan action yang sesuai
+- Flutter - RegisterPage (register.dart)
+  - User mengisi form (Username, Password, Confirm Password)
+  - User klik tombol "Register"
+  - onPressed() method dijalankan
+  - Kirim POST request dengan jsonEncode
+- Django - authentication/views.py
+  - @csrf_exempt decorator: Skip CSRF check
+  - Parse JSON body
+  - Validasi Username sudah ada dan Password match (Confirm Password)
+  - Buat user baru di database
+  - Return success response JSON
+- Flutter - RegisterPage
+  - Cek response status melakukan action yang sesuai
 
 Login:
-Flutter - LoginPage (login.dart)
-1. User mengisi form
-2. User klik tombol "Login"
-3. onPressed() async method
-4. Panggil CookieRequest.login(): POST request dengan data form dan siap menyimpan cookie
-Django - authentication/views.py
-5. @csrf_exempt decorator: Skip CSRF check
-6. Extract credentials dari POST data
-7. Autentikasi dengan Django auth system (query database sesuai username, verify password hash, return)
-8. Cek hasil autentikasi
-9. Login user (buat Session)
-10. Return success response JSON dengan Set-Cookie header
-Flutter - CookieRequest Internal Processing
-11. Extract Set-Cookie dari response header
-12. Simpan cookie di memory
-13. Set loggedIn = true
-Flutter - LoginPage
-14. Cek login status dan melakukan action yang sesuai
+- Flutter - LoginPage (login.dart)
+  - User mengisi form
+  - User klik tombol "Login"
+  - onPressed() async method
+  - Panggil CookieRequest.login(): POST request dengan data form dan siap menyimpan cookie
+- Django - authentication/views.py
+  - @csrf_exempt decorator: Skip CSRF check
+  - Extract credentials dari POST data
+  - Autentikasi dengan Django auth system (query database sesuai username, verify password hash, return)
+  - Cek hasil autentikasi
+  - Login user (buat Session)
+  - Return success response JSON dengan Set-Cookie header
+- Flutter - CookieRequest Internal Processing
+  - Extract Set-Cookie dari response header
+  - Simpan cookie di memory
+  - Set loggedIn = true
+- Flutter - LoginPage
+  - Cek login status dan melakukan action yang sesuai
 
 Logout:
-1. User klik "Logout"
-2. onTap() method pada InkWell dipanggil
-3. Masuk ke kondisi logout
-4. CookieRequest.logout() dipanggil (kirim POST request dengan cookie tersebut)
-5. @csrf_exempt decorator: Skip CSRF check
-6. Ambil username sebelum logo
-7. Logout user (hapus session)
-8. Return success response
-9. Logged out
+- Flutter: User klik "Logout" → CookieRequest.logout() → kirim POST dengan cookie
+- Django: Terima request → auth_logout() → hapus session → return success
+- CookieRequest: Clear cookie dari memory → set loggedIn = false
+- Flutter: Show message → pushReplacement ke LoginPage
+- User logged out, harus login lagi untuk akses aplikasi
 
 ### 7. Step-by-step implementasi checklist Tugas 9:
 Pada Project Django (`goals-n-glory`):
